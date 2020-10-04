@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 
+from flask_mail import Mail, Message
 from flask import Flask, render_template, session, redirect, url_for, flash
 from flask_bootstrap import Bootstrap
 from flask_migrate import Migrate
@@ -10,18 +11,34 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 
+from config import MAIL_PASSWORD, MAIL_USERNAME, SECRET_KEY, FLASITE_ADMIN
+
+
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = 'fsdfgdf8HF8hdhHD&888d9djdbNDSJnudereee'
+app.config['SECRET_KEY'] = SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# mail conf
+app.config['MAIL_SERVER'] = 'smtp.yandex.ru'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_USERNAME'] = MAIL_USERNAME
+app.config['MAIL_PASSWORD'] = MAIL_PASSWORD
+app.config['FLASITE_MAIL_SUBJECT_PREFIX'] = '[Flasite]'
+app.config['FLASITE_MAIL_SENDER'] = MAIL_USERNAME
+app.config['FLASITE_ADMIN'] = FLASITE_ADMIN
+
 
 bootstrap = Bootstrap(app)
 moment = Moment(app)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+mail = Mail(app)
+
 
 class Role(db.Model):
     __tablename__ = 'roles'
@@ -46,6 +63,14 @@ class User(db.Model):
 class NameForm(FlaskForm):
     name = StringField('Как тебя зовут?', validators=[DataRequired()])
     submit = SubmitField('Отправить')
+
+
+def send_mail(to, subject, template, **kwargs):
+    msg = Message(app.config['FLASITE_MAIL_SUBJECT_PREFIX'] + subject,
+                  sender=app.config['FLASITE_MAIL_SENDER'], recipients=[to])
+    msg.body = render_template(template + '.txt', **kwargs)
+    msg.html = render_template(template + '.html', **kwargs)
+    mail.send(msg)
 
 
 @app.shell_context_processor
@@ -73,6 +98,9 @@ def index():
             db.session.add(user)
             db.session.commit()
             session['know'] = False
+            if app.config['FLASITE_ADMIN']:
+                send_mail(app.config['FLASITE_ADMIN'], 'New User',
+                          'mail/new_user', user=user)
         else:
             session['know'] = True
         session['name'] = form.name.data
