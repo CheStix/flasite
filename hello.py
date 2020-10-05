@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from threading import Thread
 
 from flask_mail import Mail, Message
 from flask import Flask, render_template, session, redirect, url_for, flash
@@ -65,12 +66,19 @@ class NameForm(FlaskForm):
     submit = SubmitField('Отправить')
 
 
+def send_async_email(app, msg):
+    with app.app_context():
+        mail.send(msg)
+
+
 def send_mail(to, subject, template, **kwargs):
     msg = Message(app.config['FLASITE_MAIL_SUBJECT_PREFIX'] + subject,
                   sender=app.config['FLASITE_MAIL_SENDER'], recipients=[to])
     msg.body = render_template(template + '.txt', **kwargs)
     msg.html = render_template(template + '.html', **kwargs)
-    mail.send(msg)
+    thr = Thread(target=send_async_email, args=[app, msg])
+    thr.start()
+    return thr
 
 
 @app.shell_context_processor
