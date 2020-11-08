@@ -40,6 +40,10 @@ div.post-content {
     min-height: 48px;
 }
 
+div.post-footer {
+    text-align: right;
+}
+
 div.pagination {
     width: 100%;
     text-align: right;
@@ -76,3 +80,4 @@ div.flask-pagedown-preview h3 {
 .post-body h3 {
     font-size: 120%;
 }
+
