@@ -1,2 +1,13 @@
 -r common.txt
-faker=4.14.2
+Faker==4.14.2
+certifi==2020.12.5
+chardet==3.0.4
+colorama==0.4.4
+Flask-WTF==0.14.3
+httpie==2.3.0
+idna==2.10
+Pygments==2.7.3
+PySocks==1.7.1
+requests==2.25.0
+requests-toolbelt==0.9.1
+urllib3==1.26.2
