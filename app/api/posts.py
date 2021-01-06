@@ -38,7 +38,7 @@ def new_post():
     post = Post.from_json(request.json)
     post.author = g.current_user
     db.session.add(post)
-    db.commit()
+    db.session.commit()
     return jsonify(post.to_json()), 201, {'Location': url_for('api.get_post', id=post.id)}
 
 
